@@ -89,29 +89,24 @@ void SoftKb_Draw() {
 
 int SoftKb_Handle(u32 keyCode) {
   u32 newKeys = keyCode; // ^ SoftKb_LastKeys;
-  SoftKb_LastKeys = keyCode;
 
   int redraw = 0;
 
-  if(newKeys & KEY_UP)    { SoftKb_CurY = abs((SoftKb_CurY - 1) % SoftKb_Height); redraw = 1; }
-  if(newKeys & KEY_DOWN)  { SoftKb_CurY = (SoftKb_CurY + 1) % SoftKb_Height;      redraw = 1; }
-  if(newKeys & KEY_LEFT)  { SoftKb_CurX = abs((SoftKb_CurX - 1) % SoftKb_Width);  redraw = 1; }
-  if(newKeys & KEY_RIGHT) { SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width;       redraw = 1; }
+  if(keyCode & KEY_UP)    { SoftKb_CurY = abs((SoftKb_CurY - 1) % SoftKb_Height); redraw = 1; }
+  if(keyCode & KEY_DOWN)  { SoftKb_CurY = (SoftKb_CurY + 1) % SoftKb_Height;      redraw = 1; }
+  if(keyCode & KEY_LEFT)  { SoftKb_CurX = abs((SoftKb_CurX - 1) % SoftKb_Width);  redraw = 1; }
+  if(keyCode & KEY_RIGHT) { SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width;       redraw = 1; }
 
   if(redraw) {
     // The cursor has moved, set it to right spot if hovering over NULL-char
     while(SoftKb_Layout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX] == 0) {
-      if(newKeys & KEY_RIGHT) { SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width;     continue; }
-      if(newKeys & KEY_LEFT) { SoftKb_CurX = abs((SoftKb_CurX - 1) % SoftKb_Width); continue; }
+      if(keyCode & KEY_RIGHT) { SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width;     continue; }
+      if(keyCode & KEY_LEFT) { SoftKb_CurX = abs((SoftKb_CurX - 1) % SoftKb_Width); continue; }
       SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width; // Go to the right if no specific key was pressed
     }
   }
 
-  if(redraw) {
-    SoftKb_Draw();
-    consoleSelect(&LuaBox_MainConsole);
-    printf("draw\n");
-  }
+  if(redraw) SoftKb_Draw();
 
   return 0;
 }
