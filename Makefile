@@ -33,7 +33,7 @@ DATA		:=	data
 INCLUDES	:=	include
 
 APP_TITLE = "luabox3ds"
-APP_DESCRIPTION = "Network\ access\ Lua\ interpreter\ for\ 3DS"
+APP_DESCRIPTION = "Lua\ interpreter\ for\ 3DS"
 APP_AUTHOR = "nvella"
 
 #---------------------------------------------------------------------------------
@@ -43,7 +43,7 @@ ARCH	:=	-march=armv6k -mtune=mpcore -mfloat-abi=hard
 
 CFLAGS	:=	-g -Wall -O2 -mword-relocations \
 			-fomit-frame-pointer -ffast-math \
-			$(ARCH)
+			-std=gnu99 $(ARCH)
 
 CFLAGS	+=	$(INCLUDE) -DARM11 -D_3DS -DLUA_32BITS
 

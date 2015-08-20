@@ -1,0 +1,6 @@
+cd 3ds/luabox3ds
+rm luabox3ds.3dsx
+rm luabox3ds.smdh
+put luabox3ds.3dsx
+put luabox3ds.smdh
+bye
