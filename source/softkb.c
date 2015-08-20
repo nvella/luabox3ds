@@ -81,7 +81,6 @@ void SoftKb_Draw() {
           case 6:
             printf("<");
             break;
-
         }
       }
     }
@@ -104,6 +103,7 @@ int SoftKb_Handle(u32 keyCode) {
     while(SoftKb_Layout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX] == 0) {
       if(newKeys & KEY_RIGHT) { SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width;     continue; }
       if(newKeys & KEY_LEFT) { SoftKb_CurX = abs((SoftKb_CurX - 1) % SoftKb_Width); continue; }
+      SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width; // Go to the right if no specific key was pressed
     }
   }
 
