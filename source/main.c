@@ -11,10 +11,11 @@
 
 #include "luabox3ds.h"
 #include "softkb.h"
+#include "api.h"
 
 void LuaThread(void *arg) {
 	// Run Lua interpreter
-	//luaL_dostring(LuaBox_State, "dbgprint(\"Hello World!\")");
+	luaL_dostring(LuaBox_State, "console.print(\"Printing from Lua!\")");
 	while (1) {	svcSleepThread(10000000ULL);}
 }
 
@@ -25,6 +26,13 @@ int main() {
 
 	printf("%s version %s\ninitializing lua state...\n", LUABOX_NAME, LUABOX_VERSION);
 	LuaBox_State = luaL_newstate();
+
+	// Add functions to lua state
+	lua_newtable(LuaBox_State);
+	lua_pushstring(LuaBox_State, "print");
+	lua_pushcfunction(LuaBox_State, Api_dbgprint);
+	lua_settable(LuaBox_State, -3);
+	lua_setglobal(LuaBox_State, "console");
 
 	printf("initialized.\ninitializing keyboard...\n");
 	SoftKb_Setup(GFX_BOTTOM, 4, 0);

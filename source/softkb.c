@@ -5,6 +5,7 @@
 
 #include "luabox3ds.h"
 
+#include <3ds/svc.h>
 #include <3ds/gfx.h>
 #include <3ds/console.h>
 #include <3ds/services/hid.h>
@@ -47,7 +48,7 @@ void SoftKb_Setup(gfxScreen_t display, int x, int y) {
 
 void SoftKb_Draw() {
   // Aquire the console mutex
-  svcWaitSynchronization(&LuaBox_ConsoleMutex, U64_MAX);
+  svcWaitSynchronization(LuaBox_ConsoleMutex, U64_MAX);
 
   consoleSelect(&SoftKb_ConsoleWindow);
   printf("\e[2J\e[1;1H"); // Clear screen
@@ -110,7 +111,7 @@ void SoftKb_Draw() {
 
   consoleSelect(&LuaBox_MainConsole);
   // Release the console mutex
-  svcReleaseMutex(&LuaBox_ConsoleMutex);
+  svcReleaseMutex(LuaBox_ConsoleMutex);
 }
 
 int SoftKb_Handle(u32 keyCode) {
