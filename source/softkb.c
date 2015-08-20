@@ -15,14 +15,20 @@ const int SoftKb_Width = 15;
 const int SoftKb_Height = 5;
 int SoftKb_CurX = 1;
 int SoftKb_CurY = 1;
-const char SoftKb_Layout[] =
+char SoftKb_Layouts[] =
 {
-  '~', '0', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',   6,
-    1, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}','\\',   0,
+  '`', '1', '2', '3', '4', '5', '6', '7', '8', '9', '0', '-', '=',   6,   0,
+    1, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '[', ']','\\',   0,
     2,   0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ';','\'',   4,   0,
     3,   0,   0, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', ',', '.', '/',   5,   0,
+    0,   0,   0,   0,   0,   7,   0,   0,   0,   0,   0,   0,   0,   0,   0,
+  '~', '!', '@', '#', '$', '%', '^', '&', '*', '(', ')', '_', '+',   6,   0,
+    1, 'Q', 'W', 'E', 'R', 'T', 'Y', 'U', 'I', 'O', 'P', '{', '}', '|',   0,
+    2,   0, 'A', 'S', 'D', 'F', 'G', 'H', 'J', 'K', 'L', ':', '"',   4,   0,
+    3,   0,   0, 'Z', 'X', 'C', 'V', 'B', 'N', 'M', '<', '>', '?',   5,   0,
     0,   0,   0,   0,   0,   7,   0,   0,   0,   0,   0,   0,   0,   0,   0
 };
+
 // special codes
 // 0 = no key
 // 1 = tab
@@ -43,13 +49,16 @@ void SoftKb_Draw() {
   consoleSelect(&SoftKb_ConsoleWindow);
   printf("\e[2J\e[1;1H"); // Clear screen
 
+  char *currentLayout = SoftKb_Layouts;
+  if(SoftKb_Shift) currentLayout += SoftKb_Width * SoftKb_Height; // Adjust for shift if enabled
+
   for(int y = 0; y < SoftKb_Height; y++) {
     for(int x = 0; x < SoftKb_Width; x++) {
       // Go to position
       printf("\e[%i;%iH", y * 2, x * 2);
 
       // Print cursor
-      char c = SoftKb_Layout[y * SoftKb_Width + x];
+      char c = currentLayout[y * SoftKb_Width + x];
       // Print key
       if(c > 7) {
         if(x == SoftKb_CurX && y == SoftKb_CurY) {
@@ -86,7 +95,7 @@ void SoftKb_Draw() {
             if(SoftKb_Shift) printf("\e[0m");
             break;
           case 6:
-            printf("<");
+            printf("del");
             break;
           case 7:
             printf("space");
@@ -100,6 +109,9 @@ void SoftKb_Draw() {
 }
 
 int SoftKb_Handle(u32 keyCode) {
+  char *currentLayout = SoftKb_Layouts;
+  if(SoftKb_Shift) currentLayout += SoftKb_Width * SoftKb_Height; // Adjust for shift if enabled
+
   int redraw = 0;
 
   if(keyCode & KEY_UP)    { SoftKb_CurY = SoftKb_CurY - 1; if(SoftKb_CurY < 0) SoftKb_CurY = SoftKb_Height - 1; redraw = 1; }
@@ -109,18 +121,18 @@ int SoftKb_Handle(u32 keyCode) {
 
   if(redraw) {
     // The cursor has moved, set it to right spot if hovering over NULL-char
-    while(SoftKb_Layout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX] == 0) {
+    while(currentLayout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX] == 0) {
       if(keyCode & KEY_RIGHT) { SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width;                                   continue; }
       if(keyCode & KEY_LEFT) { SoftKb_CurX = SoftKb_CurX - 1; if(SoftKb_CurX < 0) SoftKb_CurX = SoftKb_Width - 1; continue; }
       SoftKb_CurX = (SoftKb_CurX + 1) % SoftKb_Width; // Go to the right if no specific key was pressed
     }
   }
 
-  char c = SoftKb_Layout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX];
+  char c = currentLayout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX];
   int key = 0;
   // If user pressed A, send the key back up
   if(keyCode & KEY_A) {
-    switch(SoftKb_Layout[SoftKb_CurY * SoftKb_Width + SoftKb_CurX]) {
+    switch(c) {
       case 1: // Tab
         key = '\t';
         if(SoftKb_Shift) { SoftKb_Shift = 0; redraw = 1; } // Reset shift status
