@@ -150,10 +150,10 @@ int SoftKb_Handle(u32 keyCode) {
         if(SoftKb_Shift) { SoftKb_Shift = 0; redraw = 1; } // Reset shift status
         break;
       default:
-        if(SoftKb_Shift | SoftKb_Caps) { // Do capital
-          key = c;
-        } else if(c >= 65) { // Is letter; Don't do capital
+        if(!(SoftKb_Shift | SoftKb_Caps) && c >= 65 && c <= 90) { // Is letter; Don't do capital
           key = c | 32; // OR with 32 to downcase
+        } else {
+          key = c;
         }
 
         if(SoftKb_Shift) { SoftKb_Shift = 0; redraw = 1; } // Reset shift status
