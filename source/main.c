@@ -15,7 +15,7 @@
 
 void LuaThread(void *arg) {
 	// Run Lua interpreter
-	luaL_dostring(LuaBox_State, "console.print(\"Printing from Lua!\")");
+	luaL_dofile(LuaBox_State, "boot.lua");
 	while (1) {	svcSleepThread(10000000ULL);}
 }
 
@@ -33,6 +33,28 @@ int main() {
 	lua_pushcfunction(LuaBox_State, Api_dbgprint);
 	lua_settable(LuaBox_State, -3);
 	lua_setglobal(LuaBox_State, "console");
+
+	// Check if boot.lua exists
+	FILE* fp = fopen("boot.lua", "r");
+	if(fp == NULL) {
+		printf("boot.lua does not exist\nplease create and place lua code in it for this to be useful.\npress start to exit.\n");
+		while(1) {
+			gspWaitForVBlank();
+			hidScanInput();
+
+			u32 kDown = hidKeysDown();
+
+			if (kDown & KEY_START)
+				break; // break in order to return to hbmenu
+
+			// Flush and swap framebuffers
+			gfxFlushBuffers();
+			gfxSwapBuffers();
+		}
+		gfxExit();
+		return 0;
+	}
+	fclose(fp);
 
 	printf("initialized.\ninitializing keyboard...\n");
 	SoftKb_Setup(GFX_BOTTOM, 4, 0);
