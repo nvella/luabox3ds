@@ -29,7 +29,8 @@ int main() {
 	// 	// Your code goes here
 	//
 	u32 kDown = hidKeysDown();
-	SoftKb_Handle(kDown);
+	char out = SoftKb_Handle(kDown);
+	if(out >= 32 || out == 10 || out == 7) printf("%c", out);
 	// 	if (kDown & KEY_START)
 	// 		break; // break in order to return to hbmenu
 	//
