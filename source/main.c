@@ -23,22 +23,19 @@ int main() {
 	SoftKb_Draw();
 	// Main loop
 	while(LuaBox_Running) {
-	gspWaitForVBlank();
-	hidScanInput();
-	//
-	// 	// Your code goes here
-	//
-	u32 kDown = hidKeysDown();
-	char out = SoftKb_Handle(kDown);
-	if(out >= 32 || out == 10 || out == 7) printf("%c", out);
-	// 	if (kDown & KEY_START)
-	// 		break; // break in order to return to hbmenu
-	//
-	// 	printf("test\n");
-	//
-	// 	// Flush and swap framebuffers
-	gfxFlushBuffers();
-	gfxSwapBuffers();
+		gspWaitForVBlank();
+		hidScanInput();
+
+		u32 kDown = hidKeysDown();
+		char out = SoftKb_Handle(kDown);
+		if(out >= 32 || out == 10 || out == 7) printf("%c", out);
+
+		if (kDown & KEY_START)
+			break; // break in order to return to hbmenu
+
+		// Flush and swap framebuffers
+		gfxFlushBuffers();
+		gfxSwapBuffers();
 	}
 
 	gfxExit();
