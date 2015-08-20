@@ -31,9 +31,6 @@ const char SoftKb_Layout[] =
 // 4 = enter
 // 5 = right shift
 
-u32 SoftKb_LastKeys = 0;
-// used to keep track of previous button state;
-
 int SoftKb_Shift = 0;
 int SoftKb_Caps = 0;
 
