@@ -11,16 +11,18 @@
 
 int main() {
 	gfxInitDefault();
-	//gfxSet3D(true); // uncomment if using stereoscopic 3D
   consoleInit(GFX_TOP, &LuaBox_MainConsole); // Initialize console
 	LuaBox_Running = 1;
 
 	printf("%s version %s\ninitializing lua state...\n", LUABOX_NAME, LUABOX_VERSION);
 	LuaBox_State = luaL_newstate();
-	printf("initialized.\n");
 
-	SoftKb_Setup(GFX_BOTTOM, 0, 0);
+	printf("initialized.\ninitializing keyboard...\n");
+	SoftKb_Setup(GFX_BOTTOM, 4, 0);
 	SoftKb_Draw();
+	printf("initialized. use dpad and A button to type.\n");
+
+
 	// Main loop
 	while(LuaBox_Running) {
 		gspWaitForVBlank();
