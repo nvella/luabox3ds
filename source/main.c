@@ -37,7 +37,6 @@ void LuaThread(void *arg) {
 		if(LuaBox_EventList == NULL) {
 			// Release the event lock and wait for a signal
 			svcReleaseMutex(LuaBox_EventMutex);
-			printf("Waiting for signal\n");
 			svcWaitSynchronization(LuaBox_EventSignal, U64_MAX); // Wait for another thread to signal us an event
 			svcClearEvent(LuaBox_EventSignal); // Clear the event
 			svcWaitSynchronization(LuaBox_EventMutex, U64_MAX); // Attempt to lock event list
