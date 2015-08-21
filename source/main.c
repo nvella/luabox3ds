@@ -20,27 +20,30 @@ void LuaThread(void *arg) {
 
 	// Continuously resume the chunk until it finishes or errors
 	int args = 0;
-	while(1) {
+	while(LuaBox_Running) {
 		int state = lua_resume(L, NULL, args);
 		args = 0;
 		if(state == LUA_OK) break; // Execution complete
 		if(state != LUA_YIELD) {
 			// Error of some kind
-			printf("# Uncaught lua error: %s\n",  luaL_checkstring(L, 1));
+			printf("# Uncaught lua error (code %i)\nTraceback:",  state);
+			luaL_dostring(L, "print(debug.traceback())");
 			break;
 		}
 
 		// Handle yield below
 		svcWaitSynchronization(LuaBox_EventMutex, U64_MAX); // Attempt to lock event list
-		struct LuaBox_Event * ev = LuaBox_EventList; // Grab end of list
 
-		if(ev == NULL) {
+		if(LuaBox_EventList == NULL) {
 			// Release the event lock and wait for a signal
 			svcReleaseMutex(LuaBox_EventMutex);
+			printf("Waiting for signal\n");
 			svcWaitSynchronization(LuaBox_EventSignal, U64_MAX); // Wait for another thread to signal us an event
 			svcClearEvent(LuaBox_EventSignal); // Clear the event
 			svcWaitSynchronization(LuaBox_EventMutex, U64_MAX); // Attempt to lock event list
 		}
+
+		struct LuaBox_Event * ev = LuaBox_EventList; // Grab end of list
 
 		if(ev != NULL) {
 			switch(ev->type) {
@@ -91,6 +94,7 @@ int main() {
 	LuaBox_EventList = NULL; // Clear event list
 	svcCreateMutex(&LuaBox_ConsoleMutex, 0); // Create the console mutex
 	svcCreateMutex(&LuaBox_EventMutex, 0); // Create event list mutex
+	svcCreateEvent(&LuaBox_EventSignal, 0); // Create event list mutex
 
 	printf("%s version %s\ninitializing lua state...\n", LUABOX_NAME, LUABOX_VERSION);
 	L = luaL_newstate();
