@@ -1,6 +1,19 @@
 cd 3ds/luabox3ds
+lcd bin
 rm luabox3ds.3dsx
 rm luabox3ds.smdh
 put luabox3ds.3dsx
 put luabox3ds.smdh
+cd ../../
+lcd ..
+
+rm lua/bios.lua
+rm lua
+mkdir lua
+cd lua
+lcd lua
+put bios.lua
+cd ..
+lcd ..
+
 bye
