@@ -15,24 +15,86 @@
 
 void LuaThread(void *arg) {
 	// Run Lua interpreter
-	luaL_dofile(LuaBox_State, "boot.lua");
+	// Load the boot.lua file onto the stack as a chunk
+	luaL_loadfile(L, "boot.lua");
+
+	// Continuously resume the chunk until it finishes or errors
+	int args = 0;
+	while(1) {
+		int state = lua_resume(L, NULL, args);
+		args = 0;
+		if(state == LUA_OK) break; // Execution complete
+		if(state != LUA_YIELD) {
+			// Error of some kind
+			printf("# Uncaught lua error: %s\n",  luaL_checkstring(L, 1));
+			break;
+		}
+
+		// Handle yield below
+		svcWaitSynchronization(LuaBox_EventMutex, U64_MAX); // Attempt to lock event list
+		struct LuaBox_Event * ev = LuaBox_EventList; // Grab end of list
+
+		if(ev == NULL) {
+			// Release the event lock and wait for a signal
+			svcReleaseMutex(LuaBox_EventMutex);
+			svcWaitSynchronization(LuaBox_EventSignal, U64_MAX); // Wait for another thread to signal us an event
+			svcClearEvent(LuaBox_EventSignal); // Clear the event
+			svcWaitSynchronization(LuaBox_EventMutex, U64_MAX); // Attempt to lock event list
+		}
+
+		if(ev != NULL) {
+			switch(ev->type) {
+				case LUABOX_EVENT_CHAR:
+					lua_pushstring(L, "char"); // Push string 'char' onto stack
+					char *charPressed = malloc(2);
+					charPressed[0] = (char)ev->value;
+					charPressed[1] = 0x0;
+					lua_pushstring(L, charPressed);
+					free(charPressed);
+					args = 2;
+					break;
+				default:
+					break;
+			}
+
+			struct LuaBox_Event * next = ev->next;
+			free(ev);
+			LuaBox_EventList = next;
+		}
+
+		// Release the event lock
+		svcReleaseMutex(LuaBox_EventMutex);
+	}
+
+	// Execution complete past this point
+	printf("# boot.lua execution complete\n");
 	while (1) {	svcSleepThread(10000000ULL);}
+}
+
+void LuaBox_PushEvent(int type, int value) {
+	svcWaitSynchronization(LuaBox_EventMutex, U64_MAX); // Attempt to lock event list
+	struct LuaBox_Event * ev = malloc(sizeof(struct LuaBox_Event)); // Allocate event
+	ev->type = type;
+	ev->value = value;
+	ev->next = LuaBox_EventList;
+	LuaBox_EventList = ev;
+	svcReleaseMutex(LuaBox_EventMutex); // release event mutex
+
+	svcSignalEvent(LuaBox_EventSignal); // Signal Lua thread if it's listening;
 }
 
 int main() {
 	gfxInitDefault();
   consoleInit(GFX_TOP, &LuaBox_MainConsole); // Initialize console
+
 	LuaBox_Running = 1;
+	LuaBox_EventList = NULL; // Clear event list
+	svcCreateMutex(&LuaBox_ConsoleMutex, 0); // Create the console mutex
+	svcCreateMutex(&LuaBox_EventMutex, 0); // Create event list mutex
 
 	printf("%s version %s\ninitializing lua state...\n", LUABOX_NAME, LUABOX_VERSION);
-	LuaBox_State = luaL_newstate();
-
-	// Add functions to lua state
-	lua_newtable(LuaBox_State);
-	lua_pushstring(LuaBox_State, "print");
-	lua_pushcfunction(LuaBox_State, Api_dbgprint);
-	lua_settable(LuaBox_State, -3);
-	lua_setglobal(LuaBox_State, "console");
+	L = luaL_newstate();
+	luaL_openlibs(L);
 
 	// Check if boot.lua exists
 	FILE* fp = fopen("boot.lua", "r");
@@ -63,7 +125,6 @@ int main() {
 
 	// Start lua thread.
 	printf("starting lua thread...\n");
-	svcCreateMutex(&LuaBox_ConsoleMutex, 0); // Create the console mutex
 	Handle threadHandle;
 	u32 *threadStack = memalign(32, LUABOX_THREAD_STACKSIZE);
 	svcCreateThread(&threadHandle, LuaThread, 0, &threadStack[LUABOX_THREAD_STACKSIZE/4], 0x3f, 0);
@@ -75,7 +136,9 @@ int main() {
 
 		u32 kDown = hidKeysDown();
 		char out = SoftKb_Handle(kDown);
-		if(out >= 32 || out == 10 || out == 7) printf("%c", out);
+		if(out >= 32 || out == 10 || out == 7) {
+			LuaBox_PushEvent(LUABOX_EVENT_CHAR, out);
+		}
 
 		if (kDown & KEY_START)
 			break; // break in order to return to hbmenu
