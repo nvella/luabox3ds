@@ -16,7 +16,7 @@
 void LuaThread(void *arg) {
 	// Run Lua interpreter
 	// Load the boot.lua file onto the stack as a chunk
-	luaL_loadfile(L, "boot.lua");
+	luaL_loadfile(L, "lua/bios.lua");
 
 	// Continuously resume the chunk until it finishes or errors
 	int args = 0;
@@ -70,7 +70,7 @@ void LuaThread(void *arg) {
 	}
 
 	// Execution complete past this point
-	printf("# boot.lua execution complete\n");
+	printf("# bios.lua execution complete\n");
 	while (1) {	svcSleepThread(10000000ULL);}
 }
 
@@ -101,9 +101,9 @@ int main() {
 	luaL_openlibs(L);
 
 	// Check if boot.lua exists
-	FILE* fp = fopen("boot.lua", "r");
+	FILE* fp = fopen("lua/bios.lua", "r");
 	if(fp == NULL) {
-		printf("boot.lua does not exist\nplease create and place lua code in it for this to be useful.\npress start to exit.\n");
+		printf("lua/bios.lua does not exist\nplease create and place lua code in it for this to be useful.\npress start to exit.\n");
 		while(1) {
 			gspWaitForVBlank();
 			hidScanInput();
