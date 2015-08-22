@@ -99,6 +99,13 @@ int main() {
 	L = luaL_newstate();
 	luaL_openlibs(L);
 
+	// Install our apis
+	lua_newtable(L);
+	lua_pushstring(L, "exists");
+	lua_pushcfunction(L, Api_fs_exists);
+	lua_settable(L, -3);
+	lua_setglobal(L, "fs");
+
 	// Check if boot.lua exists
 	FILE* fp = fopen("lua/bios.lua", "r");
 	if(fp == NULL) {
