@@ -23,12 +23,10 @@ function read()
   end
 end
 
-print("Test read here we go:")
-print("You typed: " .. read())
-
 if not fs.exists('lua/shell.lua') then
   print('error: sdmc:/lua/shell.lua doesn\'t exist.')
   error()
 end
 
+-- Do the shell
 dofile('lua/shell.lua')
